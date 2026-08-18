@@ -1,0 +1,6 @@
+# The engine uses edition 2024; 1.85.0 is the first release that supports it.
+# Pinned to a channel rather than a fixed version so security fixes arrive,
+# while still failing fast for contributors on an older toolchain.
+[toolchain]
+channel = "stable"
+components = ["clippy", "rustfmt"]

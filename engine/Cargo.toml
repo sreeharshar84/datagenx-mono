@@ -1,0 +1,97 @@
+[package]
+name = "dbgen"
+version = "0.8.0"
+authors = [
+    "kennytm <kennytm@gmail.com>",       # original author of dbgen
+    "Sreeharsha Ramanavarapu",
+]
+edition = "2024"
+license = "MIT"
+description = "Generate random test cases for databases"
+# Hard fork of https://github.com/kennytm/dbgen at 17ceb9a (v0.8.0).
+# See ../NOTICE for provenance.
+exclude = ["fuzz.sh"]
+readme = "README.md"
+keywords = ["cli", "generator", "database", "fake"]
+categories = ["command-line-utilities", "simulation"]
+rust-version = "1.85.0"
+
+[dependencies]
+clap = { workspace = true, optional = true, features = ["derive"] }
+pest = "2.7"
+pest_derive = "2.7"
+thiserror = { workspace = true }
+rand = { workspace = true }
+data-encoding = { workspace = true }
+# syn is currently duplicated because of this, wait until next release that includes https://github.com/ia0/data-encoding/pull/108
+data-encoding-macro = "0.1"
+regex-syntax = "0.8"
+# switch back to `pbr` once https://github.com/a8m/pb/pull/120 is officially released
+pbr-120 = { version = "1.1", optional = true }
+num-traits = "0.2"
+rayon = { version = "1.7", optional = true }
+chrono = { workspace = true }
+ryu = "1.0"
+serde = { workspace = true }
+muldiv = { version = "1.0", optional = true }
+rand_distr = { version = "0.4", default-features = false, features = ["alloc"] }
+rand_regex = "0.17"
+rand_pcg = { version = "0.3", optional = true }
+rand_isaac = { version = "0.3", optional = true }
+rand_chacha = { version = "0.3", optional = true }
+rand_hc = { workspace = true }
+rand_xorshift = { version = "0.3", optional = true }
+shlex = { version = "1.1", optional = true }
+flate2 = { version = "1.0", optional = true }
+xz2 = { version = "0.1", optional = true }
+zstd = { version = "0.13", default-features = false, optional = true }
+smallvec = { version = "1.13", default-features = false, features = ["union"] }
+memchr = "2.5"
+numcmp = "0.1"
+parse-size = { workspace = true, optional = true }
+fastrand = { version = "2.1", default-features = false }
+auto_enums = "0.8"
+
+[dev-dependencies]
+regex = { version = "1.9", default-features = false }
+tempfile = "3.7"
+serde_json = { workspace = true }
+diff = "0.1"
+criterion = "0.5"
+
+[[bench]]
+name = "benchmark"
+harness = false
+
+[build-dependencies]
+vergen = { version = "8.2", default-features = false, features = ["git", "gitcl", "cargo"] }
+
+[features]
+default = ["cli"]
+cli = [
+    "dep:clap",
+    "dep:pbr-120",
+    "dep:rayon",
+    "serde/derive",
+    "dep:muldiv",
+    "dep:rand_pcg",
+    "dep:rand_isaac",
+    "dep:rand_chacha",
+    "dep:rand_xorshift",
+    "dep:shlex",
+    "dep:flate2",
+    "dep:xz2",
+    "dep:zstd",
+    "dep:parse-size",
+]
+nightly = ["rand/nightly"]
+
+[[bin]]
+name = "dbgen"
+required-features = ["cli"]
+
+[[bin]]
+name = "dbschemagen"
+required-features = ["cli"]
+
+

@@ -1,0 +1,12 @@
+[licenses]
+allow = ['MIT']
+
+[[licenses.exceptions]]
+allow = ['Apache-2.0']
+name = 'ryu'
+version = '1.0'
+
+[[licenses.exceptions]]
+allow = ['Unicode-DFS-2016']
+name = 'unicode-ident'
+version = '1.0.11'

@@ -1,0 +1,8 @@
+{
+    "files_count": 2,
+    "inserts_count": 3,
+    "schema_name": "test",
+    "rng": "hc128",
+    "seed": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "components": ["schema", "table", "data"]
+}

@@ -1,0 +1,5 @@
+{
+    "inserts_count": 1,
+    "format": "sql-insert-set",
+    "components": ["data"]
+}
