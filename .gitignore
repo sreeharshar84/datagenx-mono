@@ -1,0 +1,23 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Generated data and run artifacts
+/generated/
+/results/
+/dbgen_files/
+/dbgen_tmp_out/
+
+# Local environment
+.env
+
+# OS
+.DS_Store

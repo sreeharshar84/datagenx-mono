@@ -1,0 +1,26 @@
+DataGenX
+Copyright 2026 Sreeharsha Ramanavarapu
+
+This product includes software developed by Kenny Chan.
+
+--------------------------------------------------------------------------
+Derived work: the data generation engine
+--------------------------------------------------------------------------
+
+The generation engine in `engine/` is derived from `dbgen`:
+
+    Project:    dbgen
+    Author:     Kenny Chan <kennytm@gmail.com>
+    Source:     https://github.com/kennytm/dbgen
+    License:    MIT
+    Fork point: 17ceb9a2d831ca0fd369899a4706285b18287f0d (2025-06-06, v0.8.0)
+
+The original work is licensed under the MIT License, reproduced in full in
+the LICENSE file at the root of this repository. The original copyright
+notice ("Copyright 2018 Kenny Chan") is retained there as required by that
+license.
+
+This repository is a hard fork. The engine has been modified from its
+original form and is maintained independently; upstream is no longer
+tracked. Bugs, behavior, and defects in this fork should not be attributed
+to the original author.
