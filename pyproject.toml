@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "datagenx"
+version = "0.1.0"
+description = "Statistically faithful synthetic data generation and validation"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "mysql-connector-python>=8.0.0",
+    "certifi>=2024.2.2",
+    "python-dotenv>=1.0.0",
+    "pandas>=2.0.0",
+    "plotly>=5.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+# Replaces the root-level runpy shims (MasterRun.py, validate.py,
+# validation_report.py) that existed only because the project was unpackaged.
+[project.scripts]
+datagenx-run = "datagenx.orchestration.MasterRun:main"
+datagenx-validate = "datagenx.validation.validate:main"
+datagenx-report = "datagenx.validation.validation_report:main"
+datagenx-extract-schema = "datagenx.extract_schema:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

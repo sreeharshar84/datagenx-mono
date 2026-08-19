@@ -1,0 +1,11 @@
+services:
+  tidb:
+    image: pingcap/tidb:v8.5.6
+    container_name: datagenx-tidb
+    command:
+      - -config
+      - /config/tidb.toml
+    ports:
+      - "127.0.0.1:${LOCAL_PORT:-4000}:4000"
+    volumes:
+      - ./tidb.toml:/config/tidb.toml:ro
