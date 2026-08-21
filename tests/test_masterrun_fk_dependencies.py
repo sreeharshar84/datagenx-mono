@@ -1,6 +1,8 @@
+import re
 import sys
 import types
 import unittest
+from collections import Counter, defaultdict
 
 
 mysql_pkg = types.ModuleType("mysql")
@@ -149,6 +151,89 @@ class PartialFkPkAppendageCursor:
         return self._rows
 
 
+
+# Groups shaped like TPC-H lineitem: parents holding 1, 2 or 3 children.
+# Rows = 1*4 + 2*4 + 3*4 = 24; distinct parents = 12; partner max = 3.
+MULTI_GROUPS = [(1, 4), (2, 4), (3, 4)]
+MULTI_ROWS = sum(f * c for f, c in MULTI_GROUPS)
+MULTI_DISTINCT = sum(c for _f, c in MULTI_GROUPS)
+MULTI_PARTNER_DISTINCT = max(f for f, _c in MULTI_GROUPS)
+
+
+class MultiGroupFkPkAppendageCursor(PartialFkPkAppendageCursor):
+    """Same schema shape, but the FK has several distinct group sizes.
+
+    A single frequency group cannot distinguish a per-group ordinal from a
+    global cycle, which is why the regression this covers went unnoticed.
+    """
+
+    def execute(self, sql, params=None):
+        normalized = " ".join(sql.split())
+        if normalized == "SELECT COUNT(*), COUNT(DISTINCT `item_sk`), MIN(`item_sk`), COUNT(DISTINCT `order_no`) FROM `tgt`.`sales`":
+            self.queries.append((sql, params))
+            self._row = (MULTI_ROWS, MULTI_DISTINCT, 1, MULTI_PARTNER_DISTINCT)
+            self._rows = [self._row]
+            return
+        if normalized == "SELECT COUNT(*) FROM `src`.`sales`":
+            self.queries.append((sql, params))
+            self._row = (MULTI_ROWS,)
+            self._rows = [self._row]
+            return
+        if normalized == "SELECT COUNT(DISTINCT `order_no`) FROM `src`.`sales`":
+            self.queries.append((sql, params))
+            self._row = (MULTI_PARTNER_DISTINCT,)
+            self._rows = [self._row]
+            return
+        if normalized == "SELECT COUNT(DISTINCT `item_sk`) FROM `src`.`sales`":
+            self.queries.append((sql, params))
+            self._row = (MULTI_DISTINCT,)
+            self._rows = [self._row]
+            return
+        if normalized == "SELECT COUNT(DISTINCT `item_sk`), MIN(`item_sk`) FROM `tgt`.`item`":
+            self.queries.append((sql, params))
+            self._row = (MULTI_DISTINCT, 1)
+            self._rows = [self._row]
+            return
+        if "SELECT COUNT(DISTINCT `item_sk`), MIN(`item_sk`), MAX(`item_sk`)" in normalized:
+            self.queries.append((sql, params))
+            self._row = (MULTI_DISTINCT, 1, MULTI_DISTINCT)
+            self._rows = [self._row]
+            return
+        # With a small partner cardinality the grouped-sequence path also runs
+        # before the frequency-shape path overrides it, exactly as on lineitem.
+        if "SELECT group_size, COUNT(*) AS parent_groups" in normalized:
+            self.queries.append((sql, params))
+            self._rows = list(MULTI_GROUPS)
+            self._row = self._rows[0]
+            return
+        if "SELECT frequency, COUNT(*) AS value_count" in normalized and "FROM `src`.`sales`" in normalized:
+            self.queries.append((sql, params))
+            self._rows = list(MULTI_GROUPS)
+            self._row = self._rows[0]
+            return
+        super().execute(sql, params)
+
+
+def evaluate_case(expression, rownum):
+    """Evaluate a generated dbgen CASE expression for one rownum."""
+    body = " ".join(expression.split())
+    if not body.startswith("case"):
+        return eval_scalar(body, rownum)
+    for limit, expr in re.findall(
+        r"when rownum <= (\d+) then (.*?)(?= when rownum <= | else )", body
+    ):
+        if rownum <= int(limit):
+            return eval_scalar(expr, rownum)
+    return eval_scalar(re.search(r" else (.*?) end$", body).group(1), rownum)
+
+
+def eval_scalar(expr, rownum):
+    expr = expr.strip().rstrip(",")
+    expr = re.sub(r"\bdiv\(([^,]+),([^)]+)\)", r"((\1)//(\2))", expr)
+    expr = re.sub(r"\bmod\(([^,]+),([^)]+)\)", r"((\1)%(\2))", expr)
+    return eval(expr, {"__builtins__": {}}, {"rownum": rownum})
+
+
 class MasterRunFkAppendageTests(unittest.TestCase):
     def test_partial_fk_pk_preserves_frequency_shape_without_source_literals(self):
         old_values = (
@@ -177,7 +262,12 @@ class MasterRunFkAppendageTests(unittest.TestCase):
         self.assertIn("item_sk", appendages)
         self.assertIn("order_no", appendages)
         self.assertIn("when rownum <= 1000 then 1+div(rownum-1,200)", appendages["item_sk"])
-        self.assertEqual("mod(rownum-1, 200)+1", appendages["order_no"])
+        # Banded per group rather than a global cycle. With a single frequency
+        # group the band is the whole table, so this stays equivalent to the
+        # former "mod(rownum-1, 200)+1"; the two diverge once there is more
+        # than one group (see the multi-group test below).
+        self.assertIn("when rownum <= 1000 then mod(rownum-1,200)+1",
+                      appendages["order_no"])
 
         source_literal_queries = [
             sql for sql, _params in cursor.queries
@@ -255,6 +345,73 @@ class MasterRunFkAppendageTests(unittest.TestCase):
             if "SELECT `item_sk`" in sql
         ]
         self.assertEqual([], source_literal_queries)
+
+    def test_multi_group_partner_column_matches_source_frequency_shape(self):
+        """The non-FK primary key column must be an ordinal within its group.
+
+        Regression guard. A global cycle (mod(rownum-1, partner_distinct)+1)
+        keeps the pair unique and so passes row-count and distinct-count
+        checks, but flattens the partner column's distribution and lets a
+        group straddle the wrap. That shipped undetected and showed up only as
+        a histogram divergence on TPC-H lineitem.l_linenumber.
+        """
+        old_values = (
+            masterrun.SOURCE_SCHEMA,
+            masterrun.TARGET_SCHEMA,
+            masterrun.DB_TYPE,
+            masterrun.ROWS_OVERRIDE,
+        )
+        masterrun.COMPOSITE_PK_FREQUENCY_REGISTRY.clear()
+        masterrun.SOURCE_SCHEMA = "src"
+        masterrun.TARGET_SCHEMA = "tgt"
+        masterrun.DB_TYPE = "mysql"
+        masterrun.ROWS_OVERRIDE = False
+        try:
+            appendages = masterrun.build_fk_appendages(
+                MultiGroupFkPkAppendageCursor(), "sales"
+            )
+        finally:
+            (
+                masterrun.SOURCE_SCHEMA,
+                masterrun.TARGET_SCHEMA,
+                masterrun.DB_TYPE,
+                masterrun.ROWS_OVERRIDE,
+            ) = old_values
+            masterrun.COMPOSITE_PK_FREQUENCY_REGISTRY.clear()
+
+        self.assertIn("order_no", appendages)
+        pairs = [
+            (
+                evaluate_case(appendages["item_sk"], rownum),
+                evaluate_case(appendages["order_no"], rownum),
+            )
+            for rownum in range(1, MULTI_ROWS + 1)
+        ]
+
+        # Every group emits exactly 1..k, so the partner frequencies are the
+        # count of groups at least that large.
+        expected = Counter()
+        for frequency, value_count in MULTI_GROUPS:
+            for ordinal in range(1, frequency + 1):
+                expected[ordinal] += value_count
+        self.assertEqual(expected, Counter(partner for _fk, partner in pairs))
+
+        # A global cycle would have produced a flat distribution instead.
+        self.assertNotEqual(
+            Counter({o: MULTI_ROWS // MULTI_PARTNER_DISTINCT
+                     for o in range(1, MULTI_PARTNER_DISTINCT + 1)}),
+            Counter(partner for _fk, partner in pairs),
+        )
+
+        # The composite primary key must still be unique, and each group's
+        # ordinals contiguous from 1 rather than straddling a wrap.
+        self.assertEqual(len(pairs), len(set(pairs)))
+        by_fk = defaultdict(list)
+        for fk, partner in pairs:
+            by_fk[fk].append(partner)
+        for fk, partners in by_fk.items():
+            self.assertEqual(list(range(1, len(partners) + 1)), sorted(partners),
+                             f"group {fk} is not numbered 1..k")
 
 
 if __name__ == "__main__":

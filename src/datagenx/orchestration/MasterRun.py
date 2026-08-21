@@ -977,38 +977,6 @@ def build_fk_appendages(cursor, table, extractor=None):
         """Use a generated-domain base instead of anchoring to source MIN()."""
         return default
 
-    def synthetic_frequency_case_expression(col):
-        """Return deterministic CASE preserving source value frequencies.
-
-        This is useful for non-FK columns in composite primary keys such as
-        TPC-H lineitem.l_linenumber. The companion FK PK column cycles through
-        parent keys, and this expression assigns line numbers in contiguous
-        bands so (orderkey, linenumber) stays unique while the marginal
-        frequency shape matches the source. The generated values are synthetic
-        ordinals, not the source literals.
-        """
-        cursor.execute(f"""
-            SELECT `{col}`, COUNT(*)
-            FROM `{SOURCE_SCHEMA}`.`{table}`
-            GROUP BY `{col}`
-            ORDER BY `{col}`
-        """)
-        frequencies = cursor.fetchall()
-        if not frequencies:
-            return None, None
-
-        cumulative = 0
-        case_lines = []
-        for ordinal, (_value, count) in enumerate(frequencies, start=1):
-            cumulative += count
-            case_lines.append(f"when rownum <= {cumulative} then {ordinal}")
-
-        expression = f"""case
-    {' '.join(case_lines)}
-    else {len(frequencies)}
-    end"""
-        return expression, len(frequencies)
-
     def build_grouped_parent_sequence_appendages():
         """Build expressions for parent-FK plus sequence composite PKs.
 
@@ -1247,6 +1215,7 @@ def build_fk_appendages(cursor, table, extractor=None):
             return None
 
         fk_case_lines = []
+        partner_case_lines = []
         cumulative_rows = 0
         distinct_before = 0
         for frequency, value_count in groups:
@@ -1258,6 +1227,20 @@ def build_fk_appendages(cursor, table, extractor=None):
                 f"when rownum <= {cumulative_rows} then "
                 f"{group_start}+div(rownum-{band_start},{frequency})"
             )
+            # The partner column must be the row's ordinal *within its group*,
+            # not a global cycle. A band whose groups hold `frequency` rows
+            # emits exactly 1..frequency, so a value j occurs once per group of
+            # size >= j -- which reproduces the source marginal frequency by
+            # construction, and keeps (fk, partner) unique.
+            #
+            # A global mod(rownum-1, partner_distinct) instead spreads every
+            # partner value uniformly, which both flattens that distribution
+            # and lets groups straddle the wrap (1,5,6,7 rather than 1,2,3,4),
+            # breaking insertion in primary key order.
+            partner_case_lines.append(
+                f"when rownum <= {cumulative_rows} then "
+                f"mod(rownum-{band_start},{frequency})+{synthetic_pk_base()}"
+            )
             distinct_before += value_count
 
         if distinct_before != fk_distinct:
@@ -1268,7 +1251,10 @@ def build_fk_appendages(cursor, table, extractor=None):
     {' '.join(fk_case_lines)}
     else {target_min + fk_distinct - 1}
     end""",
-            partner_col: f"mod(rownum-1, {partner_distinct})+{synthetic_pk_base()}",
+            partner_col: f"""case
+    {' '.join(partner_case_lines)}
+    else {synthetic_pk_base()}
+    end""",
         }
         COMPOSITE_PK_FREQUENCY_REGISTRY[table.lower()] = {
             "fk_col": fk_col,
@@ -1282,7 +1268,7 @@ def build_fk_appendages(cursor, table, extractor=None):
         print(
             f"      FK+PK {fk_col} -> {actual_ref}.{ref_col}: "
             f"frequency-shape PK/FK ({fk_distinct} distinct, "
-            f"{len(groups)} frequency groups); {partner_col} cycles {partner_distinct}"
+            f"{len(groups)} frequency groups); {partner_col} banded 1..k per group"
         )
         return result
 
