@@ -1,5 +1,5 @@
 [package]
-name = "dbgen"
+name = "datagenx-engine"
 version = "0.8.0"
 authors = [
     "kennytm <kennytm@gmail.com>",       # original author of dbgen
@@ -87,7 +87,7 @@ cli = [
 nightly = ["rand/nightly"]
 
 [[bin]]
-name = "dbgen"
+name = "datagenx-engine"
 required-features = ["cli"]
 
 [[bin]]

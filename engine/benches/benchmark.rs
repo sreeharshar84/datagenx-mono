@@ -1,5 +1,5 @@
 use criterion::{Bencher, Criterion, black_box, criterion_group, criterion_main};
-use dbgen::{
+use datagenx_engine::{
     eval::{CompileContext, State},
     format::Options,
     parser::Template,

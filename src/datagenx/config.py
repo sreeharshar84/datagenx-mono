@@ -120,11 +120,10 @@ TARGET_SCHEMA = _env(
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # DBGEN_BINARY is the DataGenX engine built from engine/ in this repository.
-# It is NOT the official TPC-H dbgen (see TPCH_DBGEN_DIR in
-# scripts/setup_tpch_schema.py); the two are unrelated programs that happen to
-# share a name.
+# Named datagenx-engine specifically so it cannot be confused with the
+# official TPC-H dbgen at TPCH_DBGEN_DIR, which is an unrelated program.
 def _find_dbgen_binary():
-    return str(REPO_ROOT / "target" / "release" / "dbgen")
+    return str(REPO_ROOT / "target" / "release" / "datagenx-engine")
 
 DBGEN_BINARY = os.path.expanduser(_env(
     "DBGEN_BINARY",

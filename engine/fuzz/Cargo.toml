@@ -11,7 +11,7 @@ cargo-fuzz = true
 
 [dependencies]
 tempfile = "3.0"
-dbgen = { path = ".." }
+datagenx-engine = { path = ".." }
 libfuzzer-sys = "0.2.1"
 
 # Prevent this from interfering with workspaces

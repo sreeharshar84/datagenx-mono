@@ -21,7 +21,7 @@ The generated data is blind to actual source values. Distribution *shapes* and
 Requires Rust ≥ 1.85 (edition 2024), Python ≥ 3.10, and a reachable MySQL.
 
 ```bash
-cargo build --release                       # -> target/release/dbgen
+cargo build --release                       # -> target/release/datagenx-engine
 python3 -m venv .venv && ./.venv/bin/pip install -e ".[dev]"
 cp .env.example .env                        # then set DB_PASSWORD
 ./.venv/bin/python -m pytest

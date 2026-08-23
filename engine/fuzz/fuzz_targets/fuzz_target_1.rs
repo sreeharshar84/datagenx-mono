@@ -1,7 +1,7 @@
 #![no_main]
 
 use std::fs::write;
-use dbgen::cli::{Args, run};
+use datagenx_engine::cli::{Args, run};
 use libfuzzer_sys::fuzz_target;
 use tempfile::tempdir;
 

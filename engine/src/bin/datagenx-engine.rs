@@ -1,5 +1,5 @@
 use clap::Parser as _;
-use dbgen::{
+use datagenx_engine::{
     cli::{Args, run},
     span::Registry,
 };
