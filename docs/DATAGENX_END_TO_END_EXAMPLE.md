@@ -165,7 +165,6 @@ CREATE TABLE partsupp (
     FOREIGN KEY (PS_PARTKEY) REFERENCES part(P_PARTKEY),
     FOREIGN KEY (PS_SUPPKEY) REFERENCES supplier(S_SUPPKEY)
 );
--- SF1: 800,000 rows (200,000 parts × 4 suppliers each)
 ```
 
 ### Challenge: Composite PK Where All Columns Are FKs
@@ -240,7 +239,6 @@ CREATE TABLE lineitem (
     FOREIGN KEY (L_ORDERKEY) REFERENCES orders(O_ORDERKEY),
     FOREIGN KEY (L_PARTKEY, L_SUPPKEY) REFERENCES partsupp(PS_PARTKEY, PS_SUPPKEY)
 );
--- SF1: 6,001,215 rows
 ```
 
 ### Challenges
@@ -253,11 +251,11 @@ CREATE TABLE lineitem (
 ### Expression Strategy
 
 ```python
-# Statistics:
-source_rows = 6,001,215
-distinct_orderkeys = 1,500,000
-distinct_linenumbers = 7
-avg_items_per_order = 4  # (6M / 1.5M)
+# Statistics read from the source schema:
+source_rows = <row count>
+distinct_orderkeys = <distinct count>
+distinct_linenumbers = <distinct count>
+avg_items_per_order = source_rows / distinct_orderkeys
 ```
 
 #### Option A: Independent Cycling (Current Approach)
