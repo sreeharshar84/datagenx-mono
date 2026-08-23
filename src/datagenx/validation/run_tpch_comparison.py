@@ -26,11 +26,14 @@ except ModuleNotFoundError:
 # ----------------------------------------------------------------
 # Configuration
 # ----------------------------------------------------------------
-from datagenx.config import HOST, PASSWORD, SOURCE_SCHEMA, TARGET_SCHEMA, USER
+from datagenx.config import (
+    HOST, PASSWORD, REPO_ROOT, SOURCE_SCHEMA, TARGET_SCHEMA, TPCH_QUERIES_DIR, USER,
+)
 from datagenx.validation.literal_mapping import load_mapping, rewrite_sql_literals
 
-QUERIES_DIR = "/Users/sreeharshar/work/db/datagenx/tpch/tpch-dbgen/queries_mysql"
-OUTPUT_FILE = "/Users/sreeharshar/work/db/datagenx/tpch/tpch-dbgen/comparison_results.txt"
+QUERIES_DIR = str(TPCH_QUERIES_DIR)
+# Results belong in this repository, not written back into the TPC-H kit.
+OUTPUT_FILE = str(REPO_ROOT / "generated" / "comparison_results.txt")
 
 # Thresholds for acceptable differences
 NDV_DIFF_THRESHOLD = 10  # percent

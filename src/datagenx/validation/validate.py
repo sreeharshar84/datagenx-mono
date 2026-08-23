@@ -13,7 +13,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from datagenx.config import HOST, PASSWORD, SOURCE_SCHEMA, TARGET_SCHEMA, USER
+from datagenx.config import HOST, PASSWORD, SOURCE_SCHEMA, TARGET_SCHEMA, USER, TPCH_TEMPLATE_DIR
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -392,7 +392,7 @@ def build_parser():
         "tpch-queries",
         help="Render original TPC-H query templates into runnable MySQL SQL files",
     )
-    tpch_queries.add_argument("--template-dir", default="/home/hmaduri/contribs/tpch-dbgen/queries")
+    tpch_queries.add_argument("--template-dir", default=str(TPCH_TEMPLATE_DIR))
     tpch_queries.add_argument("--output-dir", default="generated/tpch_queries_mysql")
     tpch_queries.set_defaults(func=command_tpch_queries)
 

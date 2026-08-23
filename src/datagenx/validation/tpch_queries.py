@@ -6,7 +6,9 @@ import re
 from pathlib import Path
 
 
-DEFAULT_TEMPLATE_DIR = Path("/home/hmaduri/contribs/tpch-dbgen/queries")
+from datagenx.config import TPCH_TEMPLATE_DIR
+
+DEFAULT_TEMPLATE_DIR = TPCH_TEMPLATE_DIR
 DEFAULT_OUTPUT_DIR = Path("generated/tpch_queries_mysql")
 
 

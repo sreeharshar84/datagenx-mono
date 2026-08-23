@@ -24,10 +24,10 @@ except ModuleNotFoundError:
 # ----------------------------------------------------------------
 # Configuration (same as MasterRun.py)
 # ----------------------------------------------------------------
-from datagenx.config import HOST, PASSWORD, SOURCE_SCHEMA, TARGET_SCHEMA, USER
+from datagenx.config import HOST, PASSWORD, SOURCE_SCHEMA, TARGET_SCHEMA, USER, TPCH_QUERIES_DIR
 from datagenx.validation.literal_mapping import load_mapping, rewrite_sql_literals
 
-QUERIES_DIR = "/Users/sreeharshar/work/db/datagenx/tpch/tpch-dbgen/queries_mysql"
+QUERIES_DIR = str(TPCH_QUERIES_DIR)
 
 # Threshold for "acceptable" differences
 ROW_ESTIMATE_THRESHOLD = 10  # percent

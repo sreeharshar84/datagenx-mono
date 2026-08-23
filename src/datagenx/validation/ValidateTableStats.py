@@ -1,6 +1,8 @@
 import mysql.connector
 from mysql.connector import Error
 import argparse
+
+from datagenx.config import PASSWORD
 import json
 import sys
 
@@ -430,7 +432,7 @@ def main():
     )
     parser.add_argument("--host", default="localhost")
     parser.add_argument("--user", default="root")
-    parser.add_argument("--password", default="newpassword")
+    parser.add_argument("--password", default=PASSWORD)
     parser.add_argument("--source-schema", default="tpch",
                         help="Reference schema (default: tpch)")
     parser.add_argument("--target-schema", default="tpch_harsha",

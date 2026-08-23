@@ -97,49 +97,49 @@ CREATE TABLE `lineitem` (
   PRIMARY KEY (`l_orderkey`, `l_linenumber`)
 ) ENGINE=InnoDB;
 
-LOAD DATA LOCAL INFILE '/home/hmaduri/contribs/tpch-dbgen/region.tbl'
+LOAD DATA LOCAL INFILE '/path/to/tpch-dbgen/region.tbl'
 INTO TABLE `region`
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'
 (`r_regionkey`, `r_name`, `r_comment`, @dummy);
 
-LOAD DATA LOCAL INFILE '/home/hmaduri/contribs/tpch-dbgen/nation.tbl'
+LOAD DATA LOCAL INFILE '/path/to/tpch-dbgen/nation.tbl'
 INTO TABLE `nation`
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'
 (`n_nationkey`, `n_name`, `n_regionkey`, `n_comment`, @dummy);
 
-LOAD DATA LOCAL INFILE '/home/hmaduri/contribs/tpch-dbgen/part.tbl'
+LOAD DATA LOCAL INFILE '/path/to/tpch-dbgen/part.tbl'
 INTO TABLE `part`
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'
 (`p_partkey`, `p_name`, `p_mfgr`, `p_brand`, `p_type`, `p_size`, `p_container`, `p_retailprice`, `p_comment`, @dummy);
 
-LOAD DATA LOCAL INFILE '/home/hmaduri/contribs/tpch-dbgen/supplier.tbl'
+LOAD DATA LOCAL INFILE '/path/to/tpch-dbgen/supplier.tbl'
 INTO TABLE `supplier`
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'
 (`s_suppkey`, `s_name`, `s_address`, `s_nationkey`, `s_phone`, `s_acctbal`, `s_comment`, @dummy);
 
-LOAD DATA LOCAL INFILE '/home/hmaduri/contribs/tpch-dbgen/customer.tbl'
+LOAD DATA LOCAL INFILE '/path/to/tpch-dbgen/customer.tbl'
 INTO TABLE `customer`
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'
 (`c_custkey`, `c_name`, `c_address`, `c_nationkey`, `c_phone`, `c_acctbal`, `c_mktsegment`, `c_comment`, @dummy);
 
-LOAD DATA LOCAL INFILE '/home/hmaduri/contribs/tpch-dbgen/partsupp.tbl'
+LOAD DATA LOCAL INFILE '/path/to/tpch-dbgen/partsupp.tbl'
 INTO TABLE `partsupp`
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'
 (`ps_partkey`, `ps_suppkey`, `ps_availqty`, `ps_supplycost`, `ps_comment`, @dummy);
 
-LOAD DATA LOCAL INFILE '/home/hmaduri/contribs/tpch-dbgen/orders.tbl'
+LOAD DATA LOCAL INFILE '/path/to/tpch-dbgen/orders.tbl'
 INTO TABLE `orders`
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'
 (`o_orderkey`, `o_custkey`, `o_orderstatus`, `o_totalprice`, `o_orderdate`, `o_orderpriority`, `o_clerk`, `o_shippriority`, `o_comment`, @dummy);
 
-LOAD DATA LOCAL INFILE '/home/hmaduri/contribs/tpch-dbgen/lineitem.tbl'
+LOAD DATA LOCAL INFILE '/path/to/tpch-dbgen/lineitem.tbl'
 INTO TABLE `lineitem`
 FIELDS TERMINATED BY '|'
 LINES TERMINATED BY '\n'

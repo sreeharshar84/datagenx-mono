@@ -27,18 +27,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import mysql.connector
 from mysql.connector import Error
 
-from datagenx.config import HOST, USER, PASSWORD, DB_PORT, DB_TYPE, REPO_ROOT
-
-# Location of the official TPC-H kit (dbgen + dists.dss). This is a different
-# program from the DataGenX engine, which config.DBGEN_BINARY points at.
-#
-# Configurable rather than derived by counting ".." upwards: the old form
-# assumed one exact repository nesting depth and resolved to the wrong
-# directory as soon as the layout changed.
-TPCH_DBGEN_DIR = os.path.abspath(
-    os.environ.get("TPCH_DBGEN_DIR")
-    or os.path.join(REPO_ROOT.parent, "tpch", "tpch-dbgen")
+from datagenx.config import (
+    HOST, USER, PASSWORD, DB_PORT, DB_TYPE, REPO_ROOT,
+    TPCH_DBGEN_DIR as _TPCH_DBGEN_DIR,
 )
+
+TPCH_DBGEN_DIR = str(_TPCH_DBGEN_DIR)
 
 # Table creation order (respects FK dependencies)
 TABLE_ORDER = ["region", "nation", "part", "supplier", "customer", "partsupp", "orders", "lineitem"]

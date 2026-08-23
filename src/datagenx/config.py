@@ -14,8 +14,10 @@ except ImportError:
     load_dotenv = None
 
 
+# REPO_ROOT is defined below, but .env must load before any _env() call.
+# src/datagenx/config.py -> src/datagenx -> src -> repository root.
 if load_dotenv:
-    load_dotenv(Path(__file__).resolve().parent / ".env")
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 def _env(*names, default=None):
@@ -75,12 +77,24 @@ USER = _env(
     *_engine_env_names("USERNAME"),
     default="root",
 )
+# No default: a credential does not belong in source. Set DB_PASSWORD in the
+# environment or in a .env file at the repository root (.env is gitignored).
 PASSWORD = _env(
     "DB_PASSWORD",
     "DATAGENX_DB_PASSWORD",
     *_engine_env_names("PASSWORD"),
-    default="newpassword",
 )
+
+
+def require_password():
+    """Return the configured password, or explain how to set one."""
+    if PASSWORD is None:
+        raise RuntimeError(
+            "No database password configured. Set DB_PASSWORD in the "
+            "environment, or create a .env file at the repository root "
+            "containing DB_PASSWORD=<password>. See .env.example."
+        )
+    return PASSWORD
 
 # Schema configuration. For TiDB, TIDB_DATABASE is treated as SOURCE_SCHEMA.
 SOURCE_SCHEMA = _env(
@@ -117,6 +131,24 @@ DBGEN_BINARY = os.path.expanduser(_env(
     "DATAGENX_DBGEN_BINARY",
     default=_find_dbgen_binary(),
 ))
+# Location of the official TPC-H kit (dbgen, dists.dss, queries). This is a
+# different program from the DataGenX engine above; the two only share a name.
+TPCH_DBGEN_DIR = Path(_env(
+    "TPCH_DBGEN_DIR",
+    "DATAGENX_TPCH_DBGEN_DIR",
+    default=str(REPO_ROOT.parent / "tpch" / "tpch-dbgen"),
+)).expanduser()
+
+# MySQL-dialect queries, and the original query templates shipped with the kit.
+TPCH_QUERIES_DIR = Path(_env(
+    "TPCH_QUERIES_DIR", "DATAGENX_TPCH_QUERIES_DIR",
+    default=str(TPCH_DBGEN_DIR / "queries_mysql"),
+)).expanduser()
+TPCH_TEMPLATE_DIR = Path(_env(
+    "TPCH_TEMPLATE_DIR", "DATAGENX_TPCH_TEMPLATE_DIR",
+    default=str(TPCH_DBGEN_DIR / "queries"),
+)).expanduser()
+
 DBGEN_FILES_DIR = _env("DBGEN_FILES_DIR", "DATAGENX_DBGEN_FILES_DIR",
                        default="generated/dbgen_files")
 DBGEN_TMP_OUT_DIR = _env("DBGEN_TMP_OUT_DIR", "DATAGENX_DBGEN_TMP_OUT_DIR",
