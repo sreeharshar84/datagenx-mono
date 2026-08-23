@@ -22,7 +22,7 @@ or plan comparison:
 
 ```bash
 python3 validate.py tpch-queries \
-  --template-dir /home/hmaduri/contribs/tpch-dbgen/queries \
+  --template-dir /path/to/tpch-dbgen/queries \
   --output-dir generated/tpch_queries_mysql
 ```
 
