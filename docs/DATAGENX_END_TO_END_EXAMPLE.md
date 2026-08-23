@@ -269,7 +269,7 @@ L_LINENUMBER = "mod(rownum-1, 7) + 1"       # Cycles 1-7
 **Source distribution**: Line 1: 25%, Line 2: 21%, Line 3: 18%... Line 7: 4%
 **Generated distribution**: Line 1-7: 14.3% each
 
-This causes the ~21% histogram divergence.
+This flattens the column's distribution relative to the source.
 
 #### Option B: Grouped Generation (New Approach in MasterRun.py)
 
@@ -371,7 +371,7 @@ CREATE TABLE `lineitem` (
 | FK columns | Weighted CASE uses source histogram weights | ✓ Matches |
 | Numeric (equi-height) | Bucket-cycling CASE | ✓ Matches |
 | String (singleton) | Weighted CASE | ✓ Matches |
-| PK in composite (cycling) | Independent mod() cycling | ✗ Uniform (~21% divergence) |
+| PK in composite (cycling) | Independent mod() cycling | ✗ Uniform, not the source's skew |
 | PK in composite (grouped) | Banded CASE preserving group sizes | ✓ Matches |
 | Date columns | Synthetic base + rand.range(span) | ✓ Shape matches |
 

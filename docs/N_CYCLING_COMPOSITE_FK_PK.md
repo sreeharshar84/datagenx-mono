@@ -11,21 +11,13 @@ Tables with composite primary keys where **all columns are also foreign keys** f
 | TPC-H | PARTSUPP | ps_partkey, ps_suppkey | 2-column composite FK+PK |
 | TPC-DS | inventory | inv_item_sk, inv_date_sk, inv_warehouse_sk | 3-column composite FK+PK |
 
-### Observed Failures (Before Fix)
+### Failure Mode (Before Fix)
 
-**PARTSUPP:**
-```
-Source:  200,000 distinct ps_partkey, 10,000 distinct ps_suppkey
-Replay:  80 distinct ps_partkey, 10,000 distinct ps_suppkey
-Result:  99.96% divergence on ps_partkey
-```
-
-**inventory:**
-```
-Source:  18,000 distinct inv_item_sk, 261 inv_date_sk, 5 inv_warehouse_sk
-Replay:  9,000 distinct inv_item_sk, 261 inv_date_sk, 5 inv_warehouse_sk
-Result:  50% divergence on inv_item_sk
-```
+With the odometer approach, only the fastest-moving dimension of a composite
+FK+PK achieves full coverage. Every other dimension is truncated to
+`total_rows / (product of the other dimensions)` distinct values, which for a
+wide dimension against a large table collapses to a small fraction of the
+source cardinality.
 
 ### Cascading Effect
 

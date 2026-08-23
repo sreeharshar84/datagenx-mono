@@ -48,7 +48,7 @@ max(div(rownum-1, 90000)) = div(11,745,000 - 1, 90,000) = 130
 
 So `inv_date_sk` only cycles through values 1-131, not 1-261.
 
-**Result**: Validation shows `orig=261, replay=131` (50% divergence)
+**Result**: the replay reaches only half the source's distinct values for that dimension.
 
 ## The Root Cause
 

@@ -10,13 +10,10 @@
 
 ## Problem
 
-Foreign key columns like `web_close_date_sk` showed **60% divergence** in distinct value counts.
-
-| Column | Source | Replay | Issue |
-|--------|--------|--------|-------|
-| `web_close_date_sk` | 10 values | 25 values | Using full FK range |
-| `web_open_date_sk` | 10 values | 25 values | Using full FK range |
-| `ss_store_sk` | 2 values | 3 values | Using full FK range |
+Foreign key columns whose source data uses only a small subset of the referenced
+table diverged sharply in distinct value counts: the dense approach generates
+uniformly across the whole FK range, so the replay carries more distinct values
+than the source.
 
 **Root cause**: FK columns used `rand.range(min, max)` across entire referenced table range, ignoring the actual distribution in source data.
 
@@ -61,19 +58,11 @@ end  # exactly 10 values with correct frequency distribution
 
 ---
 
-## Results
+## Result
 
-| Column | Before | After |
-|--------|--------|-------|
-| `web_open_date_sk` | 60% divergence | **0%** |
-| `web_close_date_sk` | 60% divergence | **20%** (sampling variance on 25 rows) |
-| `ss_store_sk` | 33% divergence | **0%** |
-| `sr_store_sk` | 33% divergence | **0%** |
-| `ws_warehouse_sk` | diverged | **0%** |
-| `ws_web_site_sk` | diverged | **0%** |
-| `ws_ship_mode_sk` | diverged | **0%** |
-| `wr_web_page_sk` | diverged | **0%** |
-| `cr_warehouse_sk` | diverged | **0%** |
+Affected columns generate only as many distinct values as the source uses, so
+distinct counts track the source instead of the full referenced range. Very
+low-cardinality columns retain some sampling variance.
 
 ---
 
