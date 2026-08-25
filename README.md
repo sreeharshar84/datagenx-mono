@@ -7,14 +7,53 @@ work can be done without access to the real data.
 The generated data is blind to actual source values. Distribution *shapes* and
 *counts* cross the boundary; values, MIN/MAX, and rows never do.
 
+## Status
+
+**Research prototype**, released alongside a TPCTC 2026 paper. It is a proof of
+concept rather than a product: expect rough edges, sparse error handling, and
+setup that assumes some familiarity with MySQL and benchmark toolkits.
+
+Development and testing target **MySQL 8**. TiDB and SingleStore backends exist
+and are less exercised. Interfaces may change without notice, and there is no
+support commitment.
+
 ## Layout
 
 | Path | Language | Purpose |
 |------|----------|---------|
 | `engine/` | Rust | Generation engine; consumes `.dbgen` templates |
 | `src/datagenx/` | Python | Schema extraction, template generation, orchestration, validation |
-| `scripts/` | Python | Benchmark source-schema setup (TPC-H, FK DDL) |
+| `scripts/` | Python, shell | Environment check, TPC-H kit fetch, source-schema setup |
 | `tests/` | | Unit tests, fixtures, and cloud/TiDB harnesses |
+
+## Prerequisites
+
+| Requirement | Version | Notes |
+|---|---|---|
+| Rust | ≥ 1.85 | The engine uses edition 2024 |
+| Python | ≥ 3.10 | |
+| MySQL | 8.0+ | Needs histogram support (`ANALYZE TABLE ... UPDATE HISTOGRAM`) |
+| TPC-H kit | — | Only to build a benchmark *source* schema; see below |
+
+Check what your machine has:
+
+```bash
+scripts/check_env.sh
+```
+
+The official TPC-H kit generates the source data whose statistics DataGenX
+reads. It is not redistributed here — it carries its own TPC licence — so fetch
+and build it locally:
+
+```bash
+scripts/fetch_tpch_kit.sh
+```
+
+That clones and builds it at `../tpch/tpch-dbgen`, where the code looks by
+default. To put it elsewhere, pass a path and export `TPCH_DBGEN_DIR`.
+
+Note that the kit's binary is called `dbgen` and is an entirely different
+program from this repository's `datagenx-engine`.
 
 ## Quickstart
 
@@ -48,10 +87,6 @@ Setup takes about a minute at this scale and the generation run about four,
 ending in a per-table summary of DDL, row count, histogram, and distinct-count
 agreement. Fractional scale factors are supported; schema labels render `0.5` as
 `0_5`.
-
-Source setup expects the official TPC-H kit (`dbgen`, `dists.dss`) at
-`../tpch/tpch-dbgen`, overridable with `TPCH_DBGEN_DIR`. That program is
-unrelated to this repository's engine despite sharing the name `dbgen`.
 
 ## Configuration
 
