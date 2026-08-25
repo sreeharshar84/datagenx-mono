@@ -65,6 +65,10 @@ Settings come from the environment or a `.env` file at the repository root
 - **replay** — generated data that should match orig's statistics
 - **diverged** — replay statistics differ beyond threshold (typically 5%)
 
+## Citing this work
+
+See [CITATION.cff](CITATION.cff), or use GitHub's "Cite this repository" button.
+
 ## License
 
 MIT. The engine is a hard fork of [kennytm/dbgen](https://github.com/kennytm/dbgen);

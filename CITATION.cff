@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+title: DataGenX
+message: >-
+  If you use this software, please cite both the software and the
+  accompanying TPCTC paper.
+type: software
+authors:
+  - family-names: Ramanavarapu
+    given-names: Sreeharsha
+repository-code: "https://github.com/sreeharshar84/datagenx-mono"
+abstract: >-
+  Generates synthetic database data matching the statistical properties of a
+  source schema -- histograms, distinct counts, cardinality -- without reading
+  or reproducing any source values, so query optimization strategies can be
+  evaluated against realistic statistics on data that carries no proprietary
+  content.
+keywords:
+  - synthetic data generation
+  - query optimization
+  - database benchmarking
+  - TPC-H
+  - TPC-DS
+license: MIT
+
+# TODO before publishing: complete the author list, and add the DOI and
+# page numbers once the proceedings are published.
+preferred-citation:
+  type: conference-paper
+  title: "DataGenX V2"
+  authors:
+    - family-names: Ramanavarapu
+      given-names: Sreeharsha
+  collection-title: >-
+    Performance Evaluation and Benchmarking (TPCTC 2026)
+  year: 2026
